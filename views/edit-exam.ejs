@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Exam - ULK Sudanice Community</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #e0f7f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            display: flex;
+            gap: 30px;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        /* PDF Preview */
+        .pdf-container {
+            flex: 2;
+            background: #fff;
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #pdfPreview {
+            width: 100%;
+            height: 90vh;
+            border: 2px solid #05b3a4;
+            border-radius: 8px;
+        }
+
+        /* Form Styles */
+        .form-container {
+            flex: 1;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #50e05c;
+            margin-bottom: 25px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        label {
+            font-weight: bold;
+            color: #333;
+        }
+
+        input[type="text"],
+        select,
+        input[type="file"] {
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 14px;
+            width: 100%;
+            transition: border 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        select:focus,
+        input[type="file"]:focus {
+            border: 2px solid #05b3a4;
+            outline: none;
+        }
+
+        input[type="submit"] {
+            background: linear-gradient(90deg, #05b3a4, #0aa17a, #05b3a4);
+            background-size: 200% 100%;
+            border: none;
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-position 0.5s ease;
+        }
+
+        input[type="submit"]:hover {
+            background-position: 100%;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+            }
+
+            #pdfPreview {
+                height: 60vh;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <%- include('header') %>
+
+        <div class="container">
+            <!-- PDF Preview Section -->
+            <div class="pdf-container">
+                <embed id="pdfPreview" type="application/pdf">
+            </div>
+
+            <!-- Form Section -->
+            <div class="form-container">
+                <h1>Edit Exam</h1>
+                <form action="/admin/edit-exam/<%= exam._id %>" method="POST" enctype="multipart/form-data">
+                    <label for="name">Exam Name:</label>
+                    <input type="text" name="name" id="name" placeholder="Enter exam name" value="<%= exam.name %>"
+                        required>
+
+                    <label for="year">Year:</label>
+                    <select name="year" id="year" required>
+                        <option value="">-- Select Year --</option>
+                        <option value="1" <%=exam.year==='1' ? 'selected' : '' %>>1</option>
+                        <option value="2" <%=exam.year==='2' ? 'selected' : '' %>>2</option>
+                        <option value="3" <%=exam.year==='3' ? 'selected' : '' %>>3</option>
+                        <option value="4" <%=exam.year==='4' ? 'selected' : '' %>>4</option>
+                    </select>
+
+                    <label for="track">Track:</label>
+                    <select name="track" id="track" required>
+                        <option value="">-- Select Track --</option>
+                        <option value="CSSE" <%=exam.track==='CSSE' ? 'selected' : '' %>>CSSE</option>
+                        <option value="SS" <%=exam.track==='SS' ? 'selected' : '' %>>SS</option>
+                    </select>
+
+                    <label for="major">Major:</label>
+                    <select name="major" id="major" required>
+                        <!-- Options filled dynamically -->
+                    </select>
+
+                    <label for="typeExam">Type of Exam:</label>
+                    <select name="typeExam" id="typeExam" required>
+                        <option value="">-- Select Type --</option>
+                        <option value="Cat 11" <%=exam.typeExam==='Cat 11' ? 'selected' : '' %>>Cat 11</option>
+                        <option value="Fat" <%=exam.typeExam==='Fat' ? 'selected' : '' %>>Fat</option>
+                        <option value="Quiz" <%=exam.typeExam==='Quiz' ? 'selected' : '' %>>Quiz</option>
+                    </select>
+
+                    <label for="pdfExam">Upload New PDF (optional):</label>
+                    <input type="file" name="pdfExam" id="pdfExam" accept=".pdf">
+
+                    <input type="submit" value="Update Exam">
+                </form>
+            </div>
+        </div>
+
+        <script>
+            const trackSelect = document.getElementById('track');
+            const majorSelect = document.getElementById('major');
+            const pdfInput = document.getElementById('pdfExam');
+            const pdfPreview = document.getElementById('pdfPreview');
+
+            // Original PDF URL
+            const currentPdf = "<%= exam.pdfPath ? exam.pdfPath : '' %>";
+            pdfPreview.src = currentPdf;
+
+            // Majors based on track
+            const majors = {
+                CSSE: ['Software Engineering', 'Network', 'Data Science', 'Electrical Engineering', 'Architecture'],
+                SS: ['Accounting', 'Economics', 'International Relations', 'Development Studies', 'Private Law', 'Public Law']
+            };
+
+            function updateMajorOptions() {
+                const selectedTrack = trackSelect.value;
+                majorSelect.innerHTML = '';
+                if (selectedTrack && majors[selectedTrack]) {
+                    majors[selectedTrack].forEach(m => {
+                        const option = document.createElement('option');
+                        option.value = m;
+                        option.textContent = m;
+                        if (m === "<%= exam.major %>") option.selected = true;
+                        majorSelect.appendChild(option);
+                    });
+                }
+            }
+
+            // Update majors on load
+            updateMajorOptions();
+
+            // Update majors when track changes
+            trackSelect.addEventListener('change', updateMajorOptions);
+
+            // PDF preview when selecting new file
+            pdfInput.addEventListener('change', function () {
+                const file = this.files[0];
+                if (file) {
+                    const fileURL = URL.createObjectURL(file);
+                    pdfPreview.src = fileURL;
+                } else {
+                    pdfPreview.src = currentPdf; // fallback to original PDF
+                }
+            });
+        </script>
+</body>
+
+</html>

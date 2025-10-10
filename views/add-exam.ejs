@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ULK SUDANICE COMMUNITY</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #e0f7f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            display: flex;
+            gap: 30px;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .form-container {
+            flex: 1;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #50e05c;
+            margin-bottom: 25px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        label {
+            font-weight: bold;
+            color: #333;
+        }
+
+        input[type="text"],
+        select,
+        input[type="file"] {
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 14px;
+            width: 100%;
+            transition: border 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        select:focus,
+        input[type="file"]:focus {
+            border: 2px solid #05b3a4;
+            outline: none;
+        }
+
+        input[type="submit"] {
+            background: linear-gradient(90deg, #05b3a4, #0aa17a, #05b3a4);
+            background-size: 200% 100%;
+            border: none;
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-position 0.5s ease;
+        }
+
+        input[type="submit"]:hover {
+            background-position: 100%;
+        }
+
+        .pdf-container {
+            flex: 2;
+            background: #fff;
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #pdfPreview {
+            width: 100%;
+            height: 90vh;
+            border: 2px solid #05b3a4;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+            }
+
+            #pdfPreview {
+                height: 60vh;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <%- include('header') %>
+
+        <div class="container">
+            <!-- Form Section -->
+            <div class="form-container">
+                <h1>Add Exam</h1>
+                <form action="/admin/add-exam" method="POST" enctype="multipart/form-data">
+                    <label for="name">Exam Name:</label>
+                    <input type="text" name="name" id="name" placeholder="Enter exam name" required>
+
+                    <label for="track">Track:</label>
+                    <select name="track" id="track" required>
+                        <option value="">-- Select Track --</option>
+                        <option value="CSSE">CSSE</option>
+                        <option value="SS">SS</option>
+                    </select>
+
+                    <label for="major">Major:</label>
+                    <select name="major" id="major" required>
+                        <option value="">-- Select Major --</option>
+                    </select>
+
+                    <label for="year">Year:</label>
+                    <select name="year" id="year" required>
+                        <option value="">-- Select Year --</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                    </select>
+
+                    <label for="pdfExam">PDF Exam:</label>
+                    <input type="file" name="pdfExam" id="pdfExam" accept=".pdf" required>
+
+                    <label for="typeExam">Type of Exam:</label>
+                    <select name="typeExam" id="typeExam" required>
+                        <option value="">-- Select Type --</option>
+                        <option value="Cat 11">Cat 11</option>
+                        <option value="Fat">Fat</option>
+                        <option value="Quiz">Quiz</option>
+                    </select>
+
+                    <input type="submit" value="Add Exam">
+                </form>
+            </div>
+
+            <!-- PDF Preview Section -->
+            <div class="pdf-container">
+                <embed id="pdfPreview" type="application/pdf">
+            </div>
+        </div>
+
+        <script>
+            // PDF preview
+            const pdfInput = document.getElementById('pdfExam');
+            const pdfPreview = document.getElementById('pdfPreview');
+            pdfInput.addEventListener('change', function () {
+                const file = this.files[0];
+                if (file) {
+                    const fileURL = URL.createObjectURL(file);
+                    pdfPreview.src = fileURL;
+                } else {
+                    pdfPreview.src = "";
+                }
+            });
+
+            // Dynamic Major select based on Track
+            const trackSelect = document.getElementById('track');
+            const majorSelect = document.getElementById('major');
+
+            const majors = {
+                CSSE: ['Software Engineering', 'Network', 'Data Science', 'Electrical Engineering', 'Architecture'],
+                SS: ['Accounting', 'Economics', 'International Relations', 'Development Studies', 'Private Law', 'Public Law']
+            };
+
+            trackSelect.addEventListener('change', function () {
+                const selectedTrack = this.value;
+                majorSelect.innerHTML = '<option value="">-- Select Major --</option>';
+                if (majors[selectedTrack]) {
+                    majors[selectedTrack].forEach(m => {
+                        const opt = document.createElement('option');
+                        opt.value = m;
+                        opt.textContent = m;
+                        majorSelect.appendChild(opt);
+                    });
+                }
+            });
+        </script>
+</body>
+
+</html>
