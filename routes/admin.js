@@ -26,18 +26,28 @@ router.post('/add-exam', upload.single('pdfExam'), async (req, res) => {
       return res.status(400).send('PDF is required.');
     }
 
-    const pdfPath = req.file.path;       // Cloudinary URL (raw)
-    const publicId = req.file.filename;  // Cloudinary public ID
+    // ✅ Check if the exam already exists (same name, year, typeExam, track, and major)
+    const existingExam = await Exam.findOne({ name, year, typeExam, track, major });
 
-    const exam = new Exam({ name, year, typeExam, track, major, pdfPath, publicId });
-    await exam.save();
+    if (existingExam) {
+      // Exam already exists
+      return res.status(400).send('❌ Exam already exists with the same details.');
+    }
+
+    // ✅ If not exist, add new exam
+    const pdfPath = req.file.path;
+    const publicId = req.file.filename;
+
+    const newExam = new Exam({ name, year, typeExam, track, major, pdfPath, publicId });
+    await newExam.save();
 
     res.redirect('/shop/all-exams');
   } catch (err) {
-    console.error(err);
-    res.status(500).send(err.message);
+    console.error('Error adding exam:', err);
+    res.status(500).send('Server error: ' + err.message);
   }
 });
+
 
 //======================================================
 
