@@ -38,11 +38,19 @@ router.get("/api/exams", async (req, res) => {
 
     console.log("📤 Sending exams to frontend:", exams);
     res.json(exams);
+    console.log(exams)
   } catch (err) {
     console.error("❌ Error fetching exams:", err);
     res.status(500).send("Error fetching exams");
   }
 });
 
+//=======================================
+router.get('/download-exam/:id', async (req, res) => {
+  const exam = await Exam.findById(req.params.id);
+  if (!exam) return res.status(404).send("Exam not found");
 
+  // redirect to Cloudinary raw URL but force download
+  res.redirect(`${exam.pdfPath}?fl_attachment=true&filename=${encodeURIComponent(exam.name)}.pdf`);
+});
 module.exports=router

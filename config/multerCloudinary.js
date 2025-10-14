@@ -3,35 +3,27 @@ const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('cloudinary').v2;
 require('dotenv').config();
 
-// --- Cloudinary config ---
+// --- Cloudinary Config ---
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// --- Multer Cloudinary storage for PDFs ---
+// --- Cloudinary Storage for PDF ---
 const pdfStorage = new CloudinaryStorage({
   cloudinary,
-  params: {
+  params: (req, file) => ({
+    
     folder: 'exams',
-    resource_type: 'raw', // correct for PDFs
+    resource_type: 'raw',        // Must be 'raw' for PDFs
     allowed_formats: ['pdf'],
-  },
+    format: 'pdf',               // 👈 Ensures .pdf extension in URL
+    
+  }),
 });
 
 
-// --- Multer upload ---
-const upload = multer({
-  storage: pdfStorage,
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype === 'application/pdf') {
-      cb(null, true);
-    } else {
-      cb(new Error('Only PDF files are allowed'), false);
-    }
-  },
-  limits: { fileSize: 10 * 1024 * 1024 } // 10 MB
-});
+const upload = multer({ storage: pdfStorage });
 
 module.exports = upload;
