@@ -22,29 +22,53 @@ router.post('/add-exam', upload.single('pdfExam'), async (req, res) => {
   try {
     const { name, track, major, year, typeExam } = req.body;
 
-    if (!req.file) return res.status(400).json({ message: "PDF file is required!" });
+    if (!req.file) {
+      return res.status(400).json({ message: "PDF file is required!" });
+    }
 
+    // Trim values to prevent mismatch due to extra spaces
+    const trimmedName = name.trim();
+    const trimmedTrack = track.trim();
+    const trimmedMajor = major.trim();
+    const trimmedYear = year.trim();
+    const trimmedTypeExam = typeExam.trim();
+
+    // ===== Check if exam already exists =====
+    const existingExam = await Exam.findOne({
+      name: trimmedName,
+      track: trimmedTrack,
+      major: trimmedMajor,
+      year: trimmedYear,
+      typeExam: trimmedTypeExam,
+    });
+
+    if (existingExam) {
+      // Exam exists → stop upload
+      return res.status(400).json({ message: "Exam already exists!" });
+    }
+
+    // ===== Upload exam =====
     const pdfUrl = req.file.path; // Cloudinary URL (raw)
-
-    // Force download and set the filename
-    const downloadUrl = `${pdfUrl}?fl_attachment=true&filename=${encodeURIComponent(name)}.pdf`;
+    const downloadUrl = `${pdfUrl}?fl_attachment=true&filename=${encodeURIComponent(trimmedName)}.pdf`;
 
     const newExam = new Exam({
-      name,
-      track,
-      major,
-      year,
-      typeExam,
-      pdfPath: downloadUrl, // save the download-ready URL
+      name: trimmedName,
+      track: trimmedTrack,
+      major: trimmedMajor,
+      year: trimmedYear,
+      typeExam: trimmedTypeExam,
+      pdfPath: downloadUrl,
     });
 
     await newExam.save();
     res.redirect('/shop/all-exams');
+
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Failed to upload exam", error: err });
+    res.status(500).json({ message: "Failed to upload exam", error: err.message });
   }
 });
+
 
 
 
