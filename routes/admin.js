@@ -22,11 +22,25 @@ router.post('/add-exam', upload.single('pdfExam'), async (req, res) => {
   try {
     const { name, track, major, year, typeExam } = req.body;
 
-    if (!req.file) return res.status(400).json({ message: "PDF file is required!" });
+    if (!req.file) {
+      return res.status(400).json({ message: "PDF file is required!" });
+    }
 
+    // Check if an exam already exists with same details
+    const existingExam = await Exam.findOne({
+      name: name.trim(),
+      track: track.trim(),
+      major: major.trim(),
+      year: year.trim(),
+      typeExam: typeExam.trim(),
+    });
+
+    if (existingExam) {
+      return res.status(400).json({ message: "Exam already exists!" });
+    }
+
+    // ===== Upload successful, create new exam =====
     const pdfUrl = req.file.path; // Cloudinary URL (raw)
-
-    // Force download and set the filename
     const downloadUrl = `${pdfUrl}?fl_attachment=true&filename=${encodeURIComponent(name)}.pdf`;
 
     const newExam = new Exam({
@@ -39,10 +53,11 @@ router.post('/add-exam', upload.single('pdfExam'), async (req, res) => {
     });
 
     await newExam.save();
+
     res.redirect('/shop/all-exams');
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Failed to upload exam", error: err });
+    res.status(500).json({ message: "Failed to upload exam", error: err.message });
   }
 });
 
